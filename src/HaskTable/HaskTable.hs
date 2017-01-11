@@ -27,71 +27,76 @@ module HaskTable.HaskTable (serveHashMap) where
 import Network (listenOn, withSocketsDo, accept, PortID(..), Socket)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Data.ByteString (ByteString)
-import Control.Exception (SomeException, catch, finally)
+-- import Control.Exception (SomeException, catch, finally)
+import Control.Concurrent.STM
 import Control.Concurrent (ThreadId, forkIO, threadDelay)
 import Control.Monad (forever, unless)
 import System.IO (Handle, hClose, hSetBuffering, hGetLine, hPutStrLn, BufferMode(..), Handle)
-import Data.ByteString as BS (ByteString, hGet, length, hPut, append)
-import HaskTable.Parser (Request (Put, Get, Del, Empty, Echo), Reply (store, content), parseRequest)
+import Data.ByteString.Char8 (ByteString, pack, unpack)
+import HaskTable.Parser ( Command (Put, Get, Del, Info, Echo)
+                        , Key
+                        , Value
+                        , parseRequest)
 
 
-type Store = Map.Map String [String]
+type Store = Map.Map Key Value
+
+ok :: String
+ok = "OK"
+
+notFound :: ByteString
+notFound = pack "Not found"
+
+version :: ByteString
+version = pack "0.0.1"
 
 
 serveHashMap :: Integer -> IO ()
 serveHashMap port = do
     putStrLn $ "<*> Serving on port " ++ show port
-    let globalMap = Map.empty in
-        serve globalMap $ PortNumber $ fromInteger port
+    database <- atomically $ newTVar $ Map.singleton (pack "__version__") version
+    serve database $ PortNumber $ fromInteger port
 
 
-serve :: Store -> PortID -> IO ()
+serve :: TVar Store -> PortID -> IO ()
 serve store port = withSocketsDo $ do
     sock <- listenOn port
     forever $ wait sock store
 
 
-wait :: Socket -> Store -> IO ThreadId
+wait :: Socket -> TVar Store -> IO ThreadId
 wait sock store = do
     (client, _, _) <- accept sock
-    putStrLn "Connection received"
+    putStrLn "<*> Connection received"
     forkIO $ commandProcessor client store
-    -- wait sock store
 
 
-commandProcessor :: Handle -> Store -> IO ()
+commandProcessor :: Handle -> TVar Store -> IO ()
 commandProcessor handle store = do
     line <- hGetLine handle
     let cmd = words line in
         case parseRequest cmd of
           Left err  -> return ()
           Right req -> do
-              case processWith req store of
-                Left reply -> do
-                    hPutStrLn handle $ unwords reply
-                    commandProcessor handle store
-                Right hmap -> do
-                    hPutStrLn handle $ "OK"
-                    commandProcessor handle hmap
+              response <- processWith req store
+              hPutStrLn handle $ response
+              commandProcessor handle store
 
 
-processWith :: Request -> Store -> Either [String] Store
-processWith (Put k v) store =
-    Right (Map.insert k v store)
+processWith :: Command -> TVar Store -> IO String
+processWith (Put k v) store = do
+    atomically $ modifyTVar store $ Map.insert k v
+    return ok
 
-processWith (Get k) store =
-    Left(val) where
-        val = case Map.lookup k store of
-                Just val -> val
-                Nothing -> ["Not found"]
+processWith (Get k) store = do
+    db <- atomically $ readTVar store
+    let x = Map.findWithDefault notFound k db in
+        return $ unpack x
 
-processWith (Del k) store =
-    Right (Map.delete k store)
+processWith (Del k) store = do
+    atomically $ modifyTVar store $ Map.delete k
+    return ok
 
-processWith (Empty) store =
-    Right (Map.empty)
-
-processWith (Echo r) store =
-    Left (r)
+processWith (Info) store = processWith (Get $ pack "__version__") store
+processWith (Echo r) store = return $ unpack r
 

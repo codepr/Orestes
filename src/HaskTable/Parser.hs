@@ -21,30 +21,37 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
-module HaskTable.Parser( Request(Put, Get, Del, Empty, Echo)
-                       , Reply (store, content)
+module HaskTable.Parser( Command (Put, Get, Del, Info, Echo)
+                       , Key
+                       , Value
                        , parseRequest
                        ) where
 
-import qualified Data.Map as Map
+import Data.ByteString.Char8 (ByteString, pack)
 
-data Request = Put String [String]
-             | Get String
-             | Del String
-             | Empty
-             | Echo [String] deriving (Show, Eq)
+type Key = ByteString
 
-data Reply = Reply { store :: Map.Map String [String]
-                   , content :: String } deriving (Show)
+type Value = ByteString
+
+data Command = Put Key Value
+             | Get Key
+             | Del Key
+             | Info
+             | Echo Value
+             deriving (Show, Eq)
 
 -- | Parse a request formed by a list of String, returning the correct command
 -- or an error if the command is unknown
-parseRequest :: [String] -> Either String Request
+parseRequest :: [String] -> Either String Command
 parseRequest request =
     case (head request) of
-      ("put")   -> Right (Put (head (tail request)) (drop 2 request))
-      ("get")   -> Right (Get $ head (tail request))
-      ("del")   -> Right (Del $ head (tail request))
-      ("echo")  -> Right (Echo $ tail request)
-      ("empty") -> Right (Empty)
+      ("put")   -> Right (Put k v) where
+          k = pack $ head $ tail request
+          v = pack $ unwords $ drop 2 request
+      ("get")   -> Right (Get k) where
+          k = pack $ head $ tail request
+      ("del")   -> Right (Del k) where
+          k = pack $ head $ tail request
+      ("echo")  -> Right (Echo $ (pack $ unwords $ tail request))
+      ("empty") -> Right (Info)
       _ -> Left ("Error")
