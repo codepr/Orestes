@@ -21,13 +21,13 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
-module HaskTable.Parser( Command (Put, Get, Del, Info, Echo)
+module HaskTable.Parser( Command ( Put, Get, Del, Info, Echo )
                        , Key
                        , Value
                        , parseRequest
                        ) where
 
-import Data.ByteString.Char8 (ByteString, pack)
+import Data.ByteString.Char8 ( ByteString, pack )
 
 type Key = ByteString
 
@@ -37,21 +37,22 @@ data Command = Put Key Value
              | Get Key
              | Del Key
              | Info
-             | Echo Value
+             | Echo String
              deriving (Show, Eq)
 
 -- | Parse a request formed by a list of String, returning the correct command
--- or an error if the command is unknown
+-- or a String "Error" if the command is unknown. Should be handled with a
+-- better error system or exceptions.
 parseRequest :: [String] -> Either String Command
 parseRequest request =
     case (head request) of
-      ("put")   -> Right (Put k v) where
+      ("put")  -> Right (Put k v) where
           k = pack $ head $ tail request
           v = pack $ unwords $ drop 2 request
-      ("get")   -> Right (Get k) where
+      ("get")  -> Right (Get k) where
           k = pack $ head $ tail request
-      ("del")   -> Right (Del k) where
+      ("del")  -> Right (Del k) where
           k = pack $ head $ tail request
-      ("echo")  -> Right (Echo $ (pack $ unwords $ tail request))
-      ("empty") -> Right (Info)
-      _ -> Left ("Error")
+      ("echo") -> Right (Echo $ unwords $ tail request)
+      ("info") -> Right (Info)
+      _        -> Left ("Error")

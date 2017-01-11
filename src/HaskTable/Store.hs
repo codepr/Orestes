@@ -1,5 +1,5 @@
 {-
-Copyright (c) 2017 Andrea Giacomo Baldan
+    Copyright (c) 2017 Andrea Giacomo Baldan
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -7,7 +7,7 @@ a copy of this software and associated documentation files (the
 without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+                                                       the following conditions:
 
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
@@ -21,9 +21,40 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
-module Main where
+module HaskTable.Store where
 
-import HaskTable.HaskTable (startServer)
+import Data.Map.Strict ( Map )
+import qualified Data.Map.Strict as Map
+import Control.Concurrent.STM
+import Data.ByteString.Char8 ( ByteString, pack, unpack )
+import HaskTable.Parser ( Key, Value )
 
-main :: IO ()
-main = startServer 9999
+
+type Store = TVar (Map.Map Key Value)
+
+version :: ByteString
+version = pack "0.0.1"
+
+notFound :: ByteString
+notFound = pack "Not found"
+
+
+createStore :: IO Store
+createStore =
+    atomically $ newTVar $ Map.singleton (pack "__version__") version
+
+
+put :: Key -> Value -> Store -> IO ()
+put k v store =
+    atomically $ modifyTVar store $ Map.insert k v
+
+
+get :: Key -> Store -> IO Value
+get k store = do
+    db <- atomically $ readTVar store
+    return $ Map.findWithDefault notFound k db
+
+
+del :: Key -> Store -> IO ()
+del k store =
+    atomically $ modifyTVar store $ Map.delete k
