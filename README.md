@@ -8,8 +8,8 @@ transactional memory model given by library STM.
 
 ## Build
 
-`
+```sh
 $ cabal install --only-dependencies
 $ cabal configure
 $ cabal build
-`
+```
