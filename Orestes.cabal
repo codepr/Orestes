@@ -28,6 +28,6 @@ test-suite tests
   ghc-options:         -Wall
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test, src
-  build-depends:       base, hspec >= 1.8
+  build-depends:       base, hspec >= 1.8, bytestring, containers, stm
   main-is:             OrestesSpec.hs
   default-language:    Haskell2010

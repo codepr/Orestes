@@ -21,6 +21,21 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
+{- |
+Module      :  Orestes.Server
+Copyright   :  Copyright (c) 2017 Andrea Giacomo Baldan
+License     :  MIT
+
+Maintainer  :  a.g.baldan@gmail.com
+Stability   :  provisional
+Portability :  portable
+
+Responsible for the networking part and communication with
+connecting clients
+
+-}
+
+
 module Orestes.Server (startServer) where
 
 
@@ -28,9 +43,16 @@ import Network ( listenOn, withSocketsDo, accept, PortID(..), Socket )
 import Data.Map.Strict ( Map )
 import qualified Data.Map.Strict as Map
 import Control.Concurrent.STM
-import Control.Concurrent ( ThreadId, forkIO, threadDelay )
+import Control.Concurrent ( ThreadId, forkIO )
 import Control.Monad ( forever, unless )
-import System.IO ( Handle, hSetBuffering, hSetBinaryMode, hGetLine, hPutStrLn, BufferMode(..) )
+import System.IO ( Handle
+                   , hSetBuffering
+                   , hSetBinaryMode
+                   , hGetLine
+                   , hPutStrLn
+                   , BufferMode( NoBuffering )
+                 )
+
 import Data.ByteString.Char8 ( ByteString, pack, unpack )
 import Orestes.Parser ( Command ( Put, Get, Del, Info, Echo )
                         , Key
@@ -93,10 +115,9 @@ commandProcessor handle store = do
         case parseRequest cmd of
           Left err  -> do
               hPutStrLn handle $ err
-              -- commandProcessor handle store
+              commandProcessor handle store
           Right cmd -> do
               response <- processCommand cmd store
               hPutStrLn handle $ response
-              -- commandProcessor handle store
-        commandProcessor handle store
+              commandProcessor handle store
 

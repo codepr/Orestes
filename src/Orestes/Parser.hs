@@ -21,6 +21,21 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
+{- |
+Module      :  Orestes.Parser
+Copyright   :  Copyright (c) 2017 Andrea Giacomo Baldan
+License     :  MIT
+
+Maintainer  :  a.g.baldan@gmail.com
+Stability   :  provisional
+Portability :  portable
+
+Parsing command module, handle incoming output from clients and
+translates it to Commands
+
+-}
+
+
 module Orestes.Parser( Command ( Put, Get, Del, Info, Echo )
                        , Key
                        , Value
@@ -43,6 +58,10 @@ data Command = Put Key Value
 -- | Parse a request formed by a list of String, returning the correct command
 -- or a String "Error" if the command is unknown. Should be handled with a
 -- better error system or exceptions.
+--
+-- FIXME: Ugly, refactor in order to handle ByteString and a custom
+-- communication protocol, possibly something trivial
+--
 parseRequest :: [String] -> Either String Command
 parseRequest request =
     case (head request) of

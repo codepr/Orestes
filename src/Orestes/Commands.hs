@@ -21,6 +21,20 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
+{- |
+Module      :  Orestes.Commands
+Copyright   :  Copyright (c) 2017 Andrea Giacomo Baldan
+License     :  MIT
+
+Maintainer  :  a.g.baldan@gmail.com
+Stability   :  provisional
+Portability :  portable
+
+Define commands that the store can receive and the returning values
+
+-}
+
+
 module Orestes.Commands ( processCommand, ok )
     where
 
@@ -36,6 +50,10 @@ ok = "OK"
 -- | Process a command and return an IO Monad containing a String representing
 -- the result of the operation, or an Ack/Nack based on the success of the
 -- request
+--
+-- FIXME: Refactor in order to handle directly ByteString using a custom
+-- communication protocol
+--
 processCommand :: Command -> Store -> IO String
 processCommand (Put k v) store = do
     put k v store
@@ -43,7 +61,7 @@ processCommand (Put k v) store = do
 
 processCommand (Get k) store = do
     x <- get k store
-    return $ unpack x
+    return $ unpack x  -- ByteString to String
 
 processCommand (Del k) store = do
     del k store
