@@ -62,16 +62,16 @@ data Command = Put Key Value
 -- FIXME: Ugly, refactor in order to handle ByteString and a custom
 -- communication protocol, possibly something trivial
 --
-parseRequest :: [String] -> Either String Command
+parseRequest :: [String] -> Maybe Command
 parseRequest request =
-    case (head request) of
-      ("put")  -> Right (Put k v) where
+    case head request of
+      "put"  -> Just $ Put k v where
           k = pack . head $ tail request
           v = pack . unwords $ drop 2 request
-      ("get")  -> Right (Get k) where
+      "get"  -> Just $ Get k where
           k = pack . head $ tail request
-      ("del")  -> Right (Del k) where
+      "del"  -> Just $ Del k where
           k = pack . head $ tail request
-      ("echo") -> Right (Echo . unwords $ tail request)
-      ("info") -> Right (Info)
-      _        -> Left ("Unknown command")
+      "echo" -> Just $ Echo . unwords $ tail request
+      "info" -> Just Info
+      _      -> Nothing

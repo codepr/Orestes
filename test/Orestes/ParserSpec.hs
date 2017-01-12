@@ -21,6 +21,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
+
 module Orestes.ParserSpec where
 
 import Test.Hspec
@@ -38,23 +39,23 @@ spec :: Spec
 spec = do
     describe "Parser" $ do
         it "should parse an unknown request" $ do
-            parseRequest ["unknowncmd"] `shouldBe` Left ("Unknown command")
+            parseRequest ["unknowncmd"] `shouldBe` Nothing
 
         it "should parse a well formed echo request" $ do
-            parseRequest ["echo", "hello"] `shouldBe` Right ( Echo "hello" )
+            parseRequest ["echo", "hello"] `shouldBe` Just ( Echo "hello" )
 
         it "should parse a well formed info request" $ do
-            parseRequest ["info"] `shouldBe` Right Info
+            parseRequest ["info"] `shouldBe` Just Info
 
         it "should parse a well formed put request" $ do
             parseRequest ["put", "key", "value"]
-            `shouldBe` Right ( Put (pack "key") (pack "value") )
+            `shouldBe` Just ( Put (pack "key") (pack "value") )
 
         it "should parse a well formed get request" $ do
             parseRequest ["get", "key"]
-            `shouldBe` Right ( Get (pack "key") )
+            `shouldBe` Just ( Get (pack "key") )
 
         it "should parse a well formed del request" $ do
             parseRequest ["del", "key"]
-            `shouldBe` Right ( Del (pack "key") )
+            `shouldBe` Just ( Del (pack "key") )
 

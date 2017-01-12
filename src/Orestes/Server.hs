@@ -111,13 +111,12 @@ wait sock store = do
 commandProcessor :: Handle -> Store -> IO ()
 commandProcessor handle store = do
     line <- hGetLine handle
-    let cmd = words line in
-        case parseRequest cmd of
-          Left err  -> do
-              hPutStrLn handle $ err
-              commandProcessor handle store
-          Right cmd -> do
-              response <- processCommand cmd store
-              hPutStrLn handle $ response
-              commandProcessor handle store
+    case parseRequest $ words line of
+      Just cmd -> do
+          response <- processCommand cmd store
+          hPutStrLn handle $ response
+          commandProcessor handle store
+      Nothing -> do
+          hPutStrLn handle $ "Unknown command"
+          commandProcessor handle store
 

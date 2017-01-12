@@ -36,7 +36,6 @@ executed on a Map
 -}
 
 
-
 module Orestes.Store where
 
 import qualified Data.Map.Strict as Map
