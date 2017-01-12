@@ -16,7 +16,7 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md
 cabal-version:       >=1.10
 
-executable HaskTable
+executable Orestes
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
