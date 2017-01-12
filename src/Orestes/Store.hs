@@ -39,10 +39,9 @@ executed on a Map
 
 module Orestes.Store where
 
-import Data.Map.Strict ( Map )
 import qualified Data.Map.Strict as Map
 import Control.Concurrent.STM
-import Data.ByteString.Char8 ( ByteString, pack, unpack )
+import Data.ByteString.Char8 ( ByteString, pack )
 import Orestes.Parser ( Key, Value )
 
 
