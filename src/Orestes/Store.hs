@@ -21,6 +21,22 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
+{- |
+Module      :  Orestes.Store
+Copyright   :  Copyright (c) 2017 Andrea Giacomo Baldan
+License     :  MIT
+
+Maintainer  :  a.g.baldan@gmail.com
+Stability   :  provisional
+Portability :  portable
+
+Define the behaviour of the Store, simplyfing common operations that can be
+executed on a Map
+
+-}
+
+
+
 module Orestes.Store where
 
 import Data.Map.Strict ( Map )
@@ -39,22 +55,28 @@ notFound :: ByteString
 notFound = pack "Not found"
 
 
+-- | Create a Transactional Map ByteString ByteString
 createStore :: IO Store
 createStore =
     atomically . newTVar $ Map.singleton (pack "__version__") version
 
 
+-- | Insert a key value pair or update it if already present
 put :: Key -> Value -> Store -> IO ()
 put k v store =
     atomically . modifyTVar store $ Map.insert k v
 
 
+-- | Retrieve the value of a key, fallback to "Not found" if the key is not
+-- present in the Store
 get :: Key -> Store -> IO Value
 get k store = do
     db <- atomically $ readTVar store
     return $ Map.findWithDefault notFound k db
 
 
+-- | Remove a key value pair, the Store is left untouched if the key is not
+-- found
 del :: Key -> Store -> IO ()
 del k store =
     atomically $ modifyTVar store $ Map.delete k
