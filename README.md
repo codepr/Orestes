@@ -13,3 +13,16 @@ $ cabal install --only-dependencies
 $ cabal configure
 $ cabal build
 ```
+
+## Play
+
+It currently can be tested using a generic TCP client like Telnet or Netcat,
+just connect and issue commands.
+
+```sh
+$ nc 127.0.0.1 6373
+put key value
+OK
+get key
+value
+```

@@ -26,4 +26,4 @@ module Main where
 import Orestes.Server (startServer)
 
 main :: IO ()
-main = startServer 9999
+main = startServer 6373
