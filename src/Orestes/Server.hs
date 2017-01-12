@@ -1,5 +1,5 @@
 {-
-    Copyright (c) 2017 Andrea Giacomo Baldan
+Copyright (c) 2017 Andrea Giacomo Baldan
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -7,7 +7,7 @@ a copy of this software and associated documentation files (the
 without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
-                                                       the following conditions:
+the following conditions:
 
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
@@ -21,7 +21,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
-module HaskTable.HaskTable (startServer) where
+module Orestes.Server (startServer) where
 
 
 import Network ( listenOn, withSocketsDo, accept, PortID(..), Socket )
@@ -32,28 +32,21 @@ import Control.Concurrent ( ThreadId, forkIO, threadDelay )
 import Control.Monad ( forever, unless )
 import System.IO ( Handle, hSetBuffering, hSetBinaryMode, hGetLine, hPutStrLn, BufferMode(..) )
 import Data.ByteString.Char8 ( ByteString, pack, unpack )
-import HaskTable.Parser ( Command ( Put, Get, Del, Info, Echo )
+import Orestes.Parser ( Command ( Put, Get, Del, Info, Echo )
                         , Key
                         , Value
                         , parseRequest )
 
-import HaskTable.Store ( Store
+import Orestes.Store ( Store
+                       , version
+                       , notFound
                        , createStore
                        , put
                        , get
                        , del
                        )
 
--- type Store = Map.Map Key Value
-
-ok :: String
-ok = "OK"
-
-notFound :: ByteString
-notFound = pack "Not found"
-
-version :: ByteString
-version = pack "0.0.1"
+import Orestes.Commands ( processCommand, ok )
 
 
 -- | Obtain a PordID from an Integer specifying a port to listen to
@@ -67,7 +60,6 @@ onPort port = PortNumber $ fromInteger port
 startServer :: Integer -> IO ()
 startServer port = do
     putStrLn $ "<*> Listening on localhost:" ++ show port
-    -- database <- atomically $ newTVar $ Map.singleton (pack "__version__") version
     database <- createStore
     serve database $ onPort port
 
@@ -99,33 +91,12 @@ commandProcessor handle store = do
     line <- hGetLine handle
     let cmd = words line in
         case parseRequest cmd of
-          Left err  -> return ()
+          Left err  -> do
+              hPutStrLn handle $ err
+              -- commandProcessor handle store
           Right cmd -> do
               response <- processCommand cmd store
               hPutStrLn handle $ response
-              commandProcessor handle store
-
-
--- | Process a command and return an IO Monad containing a String representing
--- the result of the operation, or an Ack/Nack based on the success of the
--- request
-processCommand :: Command -> Store -> IO String
-processCommand (Put k v) store = do
-    -- atomically $ modifyTVar store $ Map.insert k v
-    put k v store
-    return ok
-
-processCommand (Get k) store = do
-    -- db <- atomically $ readTVar store
-    -- let x = Map.findWithDefault notFound k db in
-    x <- get k store
-    return $ unpack x
-
-processCommand (Del k) store = do
-    -- atomically $ modifyTVar store $ Map.delete k
-    del k store
-    return ok
-
-processCommand (Info) store = processCommand (Get $ pack "__version__") store
-processCommand (Echo r) store = return $ r
+              -- commandProcessor handle store
+        commandProcessor handle store
 

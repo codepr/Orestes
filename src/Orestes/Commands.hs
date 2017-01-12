@@ -21,9 +21,34 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
-module Main where
+module Orestes.Commands ( processCommand, ok )
+    where
 
-import Orestes.Server (startServer)
+import Data.ByteString.Char8 ( ByteString, pack, unpack )
+import Orestes.Store ( Store, put, get, del )
+import Orestes.Parser ( Command ( Put, Get, Del, Info, Echo ) )
 
-main :: IO ()
-main = startServer 9999
+
+ok :: String
+ok = "OK"
+
+
+-- | Process a command and return an IO Monad containing a String representing
+-- the result of the operation, or an Ack/Nack based on the success of the
+-- request
+processCommand :: Command -> Store -> IO String
+processCommand (Put k v) store = do
+    put k v store
+    return ok
+
+processCommand (Get k) store = do
+    x <- get k store
+    return $ unpack x
+
+processCommand (Del k) store = do
+    del k store
+    return ok
+
+processCommand (Info) store = processCommand (Get $ pack "__version__") store
+processCommand (Echo r) store = return r
+

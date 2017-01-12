@@ -21,7 +21,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
-module HaskTable.Parser( Command ( Put, Get, Del, Info, Echo )
+module Orestes.Parser( Command ( Put, Get, Del, Info, Echo )
                        , Key
                        , Value
                        , parseRequest
@@ -47,12 +47,12 @@ parseRequest :: [String] -> Either String Command
 parseRequest request =
     case (head request) of
       ("put")  -> Right (Put k v) where
-          k = pack $ head $ tail request
-          v = pack $ unwords $ drop 2 request
+          k = pack . head $ tail request
+          v = pack . unwords $ drop 2 request
       ("get")  -> Right (Get k) where
-          k = pack $ head $ tail request
+          k = pack . head $ tail request
       ("del")  -> Right (Del k) where
-          k = pack $ head $ tail request
-      ("echo") -> Right (Echo $ unwords $ tail request)
+          k = pack . head $ tail request
+      ("echo") -> Right (Echo . unwords $ tail request)
       ("info") -> Right (Info)
-      _        -> Left ("Error")
+      _        -> Left ("Unknown command")
