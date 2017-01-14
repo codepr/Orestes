@@ -21,9 +21,19 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -}
 
+
 module Main where
 
+
+import System.Environment (getArgs)
 import Orestes.Server (startServer)
 
 main :: IO ()
-main = startServer 6373
+main = do
+    args <- getArgs
+    case args of
+      [host, port] -> do
+          startServer $ read port
+      [port] -> do
+          startServer 6373
+

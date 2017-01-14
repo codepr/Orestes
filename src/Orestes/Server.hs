@@ -57,7 +57,8 @@ import Data.ByteString.Char8 ( ByteString, pack, unpack )
 import Orestes.Parser ( Command ( Put, Get, Del, Info, Echo )
                         , Key
                         , Value
-                        , parseRequest )
+                        , parseRequest
+                      )
 
 import Orestes.Store ( Store
                        , version

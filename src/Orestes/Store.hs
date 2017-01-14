@@ -43,7 +43,6 @@ import Control.Concurrent.STM
 import Data.ByteString.Char8 ( ByteString, pack )
 import Orestes.Parser ( Key, Value )
 
-
 type Store = TVar ( Map.Map Key Value )
 
 version :: ByteString
