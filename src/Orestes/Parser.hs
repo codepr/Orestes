@@ -64,14 +64,21 @@ data Command = Put Key Value
 --
 parseRequest :: [String] -> Maybe Command
 parseRequest request =
-    case head request of
-      "put"  -> Just $ Put k v where
-          k = pack . head $ tail request
-          v = pack . unwords $ drop 2 request
-      "get"  -> Just $ Get k where
-          k = pack . head $ tail request
-      "del"  -> Just $ Del k where
-          k = pack . head $ tail request
-      "echo" -> Just $ Echo . unwords $ tail request
-      "info" -> Just Info
-      _      -> Nothing
+    case request of
+      ["put", k, v] -> Just $ Put (pack k) (pack v)
+      ["get", k]    -> Just $ Get (pack k)
+      ["del", k]    -> Just $ Del (pack k)
+      ["echo", s]   -> Just $ Echo s
+      ["info"]      -> Just $ Info
+      _             -> Nothing
+    -- case head request of
+    --   "put"  -> Just $ Put k v where
+    --       k = pack . head $ tail request
+    --       v = pack . unwords $ drop 2 request
+    --   "get"  -> Just $ Get k where
+    --       k = pack . head $ tail request
+    --   "del"  -> Just $ Del k where
+    --       k = pack . head $ tail request
+    --   "echo" -> Just $ Echo . unwords $ tail request
+    --   "info" -> Just Info
+    --   _      -> Nothing
